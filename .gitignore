@@ -1,0 +1,12 @@
+# Visual Studio and CMake generated files
+.vs/
+out/
+build/
+CMakeUserPresets.json
+
+# Compiled output
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.ipch
