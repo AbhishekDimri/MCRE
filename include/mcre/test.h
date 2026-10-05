@@ -1,7 +1,9 @@
+#pragma once
+
 #include<iostream>
 
 using namespace std;
 
-void check() {
+inline void check() {
 	cout << "Working...."<<endl;
 }

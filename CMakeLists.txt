@@ -17,6 +17,16 @@ endif()
 # PROJECT_SOURCE_DIR, which the sub-files use to locate the include/ folder.
 project(MCRE LANGUAGES CXX)
 
+# Optional Visual Studio "segment heap" support (a faster Windows memory
+# allocator, embedded into executables via a manifest). Loaded only when the
+# Visual Studio environment is available, so configuring from a plain terminal
+# or another IDE still works. Previously this was set in CMakePresets.json,
+# which broke configuring whenever VSINSTALLDIR was empty.
+set(_vs_segment_heap "$ENV{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/Microsoft/SegmentHeap.cmake")
+if (DEFINED ENV{VSINSTALLDIR} AND EXISTS "${_vs_segment_heap}")
+  include("${_vs_segment_heap}")
+endif()
+
 # Run src/CMakeLists.txt, which defines the engine library "mcre".
 # This must come BEFORE app, because the app links to that library.
 add_subdirectory(src)

@@ -12,6 +12,9 @@ add_library(mcre STATIC
     # target (gives IntelliSense and the project dropdown). The compiler does
     # not need them here; it finds headers via the include directory below.
     ${PROJECT_SOURCE_DIR}/include/mcre/core/errors.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/model.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/response.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/aggregation.hpp
 )
 
 # Tells the compiler where to search for headers. PROJECT_SOURCE_DIR is the
