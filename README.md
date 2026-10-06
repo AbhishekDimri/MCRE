@@ -182,18 +182,3 @@ The initial design document (MCRE v1.0 Design Document) is the baseline. It is a
 living document: where implementation diverges from it, the change and the reason
 are recorded in `docs/DESIGN_AMENDMENTS.md`.
 
-## Roadmap
-
-1. ~~Core types and `ClampToBounds`~~ (done)
-2. ~~Response (mechanism) functions~~ (done, except `Custom`)
-3. Property and component registries
-4. ~~Aggregation (sum, weighted mean, weighted median)~~ (done)
-5. Evaluation of acyclic properties
-6. Damped fixed-point solver for the Pressure/Expansion loop
-7. Tarjan SCC detection, scheduling, and the stability gate
-8. Trace output, builder API (`combine`, `amplify`, `concentrate`)
-9. Offense / defense resolver, constraints, regression suite
-
-## License
-
-Not yet chosen.
