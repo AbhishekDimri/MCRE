@@ -14,9 +14,9 @@ namespace mcre {
 	using ComponentId = std::uint32_t;
 
 	// enum for the different aggregation methods
-	enum AggregationKind {Sum, WeightedMean, Median};
+	enum class AggregationKind {Sum, WeightedMean, Median};
 	// enum for the different mechanisms
-	enum Mechanism {Linear, Inverse, Saturation, Exponential, Threshold, Sigmoid, Custom};
+	enum class Mechanism {Linear, Inverse, Saturation, Exponential, Threshold, Sigmoid, Custom};
 
 	// struct for the bounds of the property value
 	struct Bounds {
@@ -56,16 +56,17 @@ namespace mcre {
 
 	// struct for the property value
 	struct property {
-		PropertyId propertyId;
-		double propertyValue;
+		PropertyId propertyId = 0.0;
+		double propertyValue = 0.0;
 		std::string propertyName;
 		Bounds bounds;
+		AggregationKind aggregationKind = AggregationKind::WeightedMean;
 		std::vector<InfluenceEdge> influences; // list of influences on this property
 	};
 
 	// struct for the component value
 	struct component {
-		ComponentId componentId;
+		ComponentId componentId = 0.0;
 		std::string componentName;
 		std::map< PropertyId, double> properties; // map of propertyId to propertyValue
 		std::string version;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
++ #include <stdexcept>
 
 #include "mcre/core/errors.hpp"
 #include "mcre/model/model.hpp"
