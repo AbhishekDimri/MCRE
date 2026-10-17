@@ -10,3 +10,4 @@ CMakeUserPresets.json
 *.pdb
 *.ilk
 *.ipch
+*.log

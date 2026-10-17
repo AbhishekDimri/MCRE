@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <vector>
+#include <cmath>
+#include <stdexcept>
 
 #include "mcre/model/model.hpp"
 
@@ -19,9 +21,10 @@ namespace mcre {
 	// between runs, even when the same component id appears more than once.
 	inline double aggregate(AggregationKind kind, std::vector<Contribution> items) {
 		for (const auto& c : items) {
-			if (!(c.weight >= 0.0)) {  // also rejects NaN
-				throw std::invalid_argument("aggregate: weight must be non-negative");
-			}
+			if (!std::isfinite(c.weight) || c.weight < 0.0) 
+				throw std::invalid_argument("aggregate: weight must be finite and non-negative");
+			if (!std::isfinite(c.value))                     
+				throw std::invalid_argument("aggregate: value must be finite");
 		}
 
 		std::sort(items.begin(), items.end(),

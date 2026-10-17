@@ -56,8 +56,8 @@ namespace mcre {
 
 	// struct for the property value
 	struct property {
-		PropertyId propertyId = 0.0;
-		double propertyValue = 0.0;
+		PropertyId propertyId = 0;
+		double propertyValue = 0;
 		std::string propertyName;
 		Bounds bounds;
 		AggregationKind aggregationKind = AggregationKind::WeightedMean;
@@ -66,7 +66,7 @@ namespace mcre {
 
 	// struct for the component value
 	struct component {
-		ComponentId componentId = 0.0;
+		ComponentId componentId = 0;
 		std::string componentName;
 		std::map< PropertyId, double> properties; // map of propertyId to propertyValue
 		std::string version;

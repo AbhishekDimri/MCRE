@@ -7,6 +7,7 @@ add_library(mcre STATIC
     # Every new .cpp you write must be added to this list, otherwise it is
     # never compiled and you get "unresolved external symbol" at link time.
     core/errors.cpp
+    model/registry.cpp
 
     # Headers are listed only so Visual Studio associates them with this
     # target (gives IntelliSense and the project dropdown). The compiler does
@@ -15,6 +16,8 @@ add_library(mcre STATIC
     ${PROJECT_SOURCE_DIR}/include/mcre/model/model.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/response.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/aggregation.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/core/logger.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/registry.hpp
 )
 
 # Tells the compiler where to search for headers. PROJECT_SOURCE_DIR is the

@@ -8,6 +8,8 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <cctype>
+#include <utility>
 
 
 // File logger. Usage, anywhere in the project:
@@ -22,11 +24,11 @@
 // File format (a date line when the day changes, then one line per message):
 //
 //     08/10/2026
-//     21:53:07 : INFO: registered Temperature with id 1
-//     21:53:07 : ERROR: could not open fire.json
+//     21:53:07 : INFO : registered Temperature with id 1
+//     21:53:07 : ERROR : could not open fire.json
 //
 //     09/10/2026
-//     09:12:44 : INFO: ...
+//     09:12:44 : INFO : ...
 //
 // Logging never throws and never stops the program: if the file cannot be opened, calls do nothing.
 
@@ -35,7 +37,7 @@ namespace mcre::logger {
 	namespace detail {
 
 		// State of the logger, shared by all threads. The mutex protects the state.
-		struct state {
+		struct State {
 			std::mutex mutex;
 			std::filesystem::path logPath = "mcre.log";
 			bool isOpen = false;
@@ -44,8 +46,8 @@ namespace mcre::logger {
 		};
 
 		// Get the logger state. The state is a singleton, shared by all threads.
-		inline state& state() {
-			static state s;
+		inline State& state() {
+			static State s;
 			return s;
 		}
 
@@ -58,7 +60,7 @@ namespace mcre::logger {
 		}
 
 		// get the local time as a string in the format "HH:MM:SS"
-		inline std:tm localtime(std::time_t t) {
+		inline std::tm localtime(std::time_t t) {
 			std::tm result;
 
 			#if defined(_WIN32) || defined(_WIN64)
@@ -76,18 +78,6 @@ namespace mcre::logger {
 			return buffer;
 		}
 
-		// lastDate() returns the last date string written to the log file, or an empty string if none.
-		inline std::string lastDateIn(const std::filesystem::path& path) {
-			std::ifstream in(path);
-			std::string line, last;
-			std::string line;
-			while (std::getline(in, line)) {
-				if (!line.empty() && line.back() == '\r') line.pop_back();
-				if (isDate(line)) last = line;
-			}
-			return last;
-		}
-
 		// isDate() returns true if the line is a date line in the format "DD/MM/YYYY"
 		inline bool isDate(const std::string& line) {
 			if (line.size() != 10) return false;
@@ -95,26 +85,39 @@ namespace mcre::logger {
 
 			for (std::size_t i = 0; i < line.size(); ++i) {
 				if (i == 2 || i == 5) continue;
-				if(!std::isdigit(line[i])) return false;
+				if (!std::isdigit(static_cast<unsigned char>(line[i]))) 
+					return false;
 			}
 
 			return true;
 		}
 
+		// lastDate() returns the last date string written to the log file, or an empty string if none.
+		inline std::string lastDateIn(const std::filesystem::path& path) {
+			std::ifstream in(path);
+			std::string line;
+			std::string last;
+			while (std::getline(in, line)) {
+				if (!line.empty() && line.back() == '\r') line.pop_back();
+				if (isDate(line)) last = line;
+			}
+			return last;
+		}
+
+
 		// writeDate() writes the current date to the log file if it is different from the last date.
-		inline void write(const char* level, const char* message) {
+		inline void write(const std::string& level, const std::string& message) {
 			State& s = state();
 			std::lock_guard<std::mutex> lock(s.mutex);
-
 
 			// open the log file if it is not open yet
 			if (!s.isOpen) {
 				s.isOpen = true;
-				std::string lastDate = lastDate(s.file);
-				s.out.open(s.file, std::ios:app);
+				s.lastDate = lastDateIn(s.logPath);
+				s.out.open(s.logPath, std::ios::app);
 
-				if (s.out) std::cerr << "[MCRE] Logging to file " << std::filesystem.absolute(s.file) << std::endl;
-				else std::cerr << "[MCRE] Could not open log file " << std::filesystem.absolute(s.file) << std::endl;
+				if (s.out) std::cerr << "[MCRE] Logging to file " << std::filesystem::absolute(s.logPath) << std::endl;
+				else std::cerr << "[MCRE] Could not open log file " << std::filesystem::absolute(s.logPath) << std::endl;
 			}
 
 			if (!s.out) return;
@@ -131,21 +134,22 @@ namespace mcre::logger {
 			}
 
 			// write the log message
-			s.out << format(now, "%H:%M:%S") << " : " << level << " : " << message << < std::endl;
+			s.out << format(now, "%H:%M:%S") << " : " << level << " : " << message << std::endl;
 			s.out.flush(); // flush the output to disk so that it is written even if the program crashes
 		}
 	}
 
 	// log a message with the given level and arguments
 	template <class ...Args>
-	inline info(Args ...args) noexcept {
+	inline void info(Args ...args) noexcept {
 		try { 
 			detail::write("INFO", detail::join(std::forward<Args>(args)...)); 
 		}
 		catch (...) { /* ignore any exception */ }
 	}
 
-	inline error(Args ...args) noexcept {
+	template <class ...Args>
+	inline void error(Args ...args) noexcept {
 		try {
 			detail::write("ERROR", detail::join(std::forward<Args>(args)...));
 		}
