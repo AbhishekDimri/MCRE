@@ -19,6 +19,9 @@ namespace mcre {
 		// Adds a property and returns its id. Throws std::invalid_argument on bad input.
 		PropertyId add(std::string_view name, Bounds bounds, AggregationKind aggregation = AggregationKind::WeightedMean);
 
+		// Records "source affects edge.target". Throws std::invalid_argument if the edge is not valid.
+		void addInfluence(PropertyId source, const InfluenceEdge& edge);
+
 		// nullptr when there is no such property. Pointers stay valid until the next add().
 		const property* byId(PropertyId id) const noexcept;
 		const property* byName(std::string_view name) const noexcept;
