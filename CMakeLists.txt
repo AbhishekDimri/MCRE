@@ -27,6 +27,19 @@ if (DEFINED ENV{VSINSTALLDIR} AND EXISTS "${_vs_segment_heap}")
   include("${_vs_segment_heap}")
 endif()
 
+# ---- Third-party libraries ----
+include(FetchContent)
+
+# Without this, newer CMake prints a warning about the timestamps of downloaded files.
+if (POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
+# nlohmann_json: reads JSON text. Only src/model/loader.cpp will use it.
+FetchContent_Declare(nlohmann_json
+  URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # Run src/CMakeLists.txt, which defines the engine library "mcre".
 # This must come BEFORE app, because the app links to that library.
 add_subdirectory(src)

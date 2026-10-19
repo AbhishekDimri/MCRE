@@ -8,6 +8,7 @@ add_library(mcre STATIC
     # never compiled and you get "unresolved external symbol" at link time.
     core/errors.cpp
     model/registry.cpp
+    model/loader.cpp
 
     # Headers are listed only so Visual Studio associates them with this
     # target (gives IntelliSense and the project dropdown). The compiler does
@@ -18,6 +19,7 @@ add_library(mcre STATIC
     ${PROJECT_SOURCE_DIR}/include/mcre/model/aggregation.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/core/logger.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/registry.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/loader.hpp
 )
 
 # Tells the compiler where to search for headers. PROJECT_SOURCE_DIR is the
@@ -33,6 +35,9 @@ target_include_directories(mcre PUBLIC
 # (/std:c++20 for MSVC, -std=c++20 for GCC/Clang). PUBLIC so everything that
 # links to mcre also compiles with at least C++20.
 target_compile_features(mcre PUBLIC cxx_std_20)
+
+# The loader uses nlohmann_json. PRIVATE: only mcre's own .cpp files can see it.
+target_link_libraries(mcre PRIVATE nlohmann_json::nlohmann_json)
 
 # Compiler warnings, which act as free bug reports. The flags differ by compiler.
 # PRIVATE: these apply only to the engine's own code, not to targets that link

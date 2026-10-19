@@ -181,4 +181,3 @@ Targets:
 The initial design document (MCRE v1.0 Design Document) is the baseline. It is a
 living document: where implementation diverges from it, the change and the reason
 are recorded in `docs/DESIGN_AMENDMENTS.md`.
-
