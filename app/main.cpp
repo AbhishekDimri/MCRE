@@ -12,6 +12,7 @@
 #include "mcre/model/loader.hpp"
 #include "mcre/model/propertyRegistry.hpp"
 #include "mcre/model/componentRegistry.hpp"
+#include "mcre/model/builtin.hpp"
 
 namespace {
 	// Prints what a load produced: every component, or every problem.
@@ -37,10 +38,7 @@ namespace {
 int main() {
 	// The properties that exist. The loader checks the file against these.
 	mcre::PropertyRegistry registry;
-	registry.add("Temperature", { 0.0, 1.0 });
-	registry.add("Viscosity", { 0.0, 1.0 });
-	registry.add("Pressure", { -1.0, 1.0 });
-	registry.add("Expansion", { 0.0, 1.0 });
+	mcre::builtin::addPrototypeProperties(registry);
 
 	// ---- Test 1: good text. Expect: ok, 2 components, 0 problems.
 	const std::string goodText = R"json({
@@ -100,6 +98,17 @@ int main() {
 		catch (const std::invalid_argument& e) {
 			std::cout << "rejected as expected: " << e.what() << "\n";
 		}
+	}
+
+	// ---- Test 7: the built-in prototype data (4 properties, Fire, Water) from builtin.cpp.
+	{
+		mcre::PropertyRegistry prototypeProperties;
+		mcre::ComponentRegistry prototypeComponents;
+		mcre::builtin::addPrototypeProperties(prototypeProperties);
+		mcre::builtin::addPrototypeComponents(prototypeComponents, prototypeProperties);
+		std::cout << "\n=== Test 7: built-in prototype data ===\n";
+		prototypeProperties.dump(std::cout);
+		prototypeComponents.dump(std::cout, prototypeProperties);
 	}
 
 	std::cout << "\nPress Enter to exit...";

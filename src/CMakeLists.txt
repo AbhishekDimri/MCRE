@@ -10,6 +10,7 @@ add_library(mcre STATIC
     model/propertyRegistry.cpp
     model/componentRegistry.cpp
     model/loader.cpp
+    model/builtin.cpp 
 
     # Headers are listed only so Visual Studio associates them with this
     # target (gives IntelliSense and the project dropdown). The compiler does
@@ -22,6 +23,7 @@ add_library(mcre STATIC
     ${PROJECT_SOURCE_DIR}/include/mcre/model/propertyRegistry.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/componentRegistry.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/loader.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/builtin.hpp
 )
 
 # Tells the compiler where to search for headers. PROJECT_SOURCE_DIR is the
