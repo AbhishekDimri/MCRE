@@ -1,117 +1,86 @@
-﻿// Manual test of the component loader (until real unit tests exist).
+﻿// mcre_app: a small command-line demo of the MCRE engine.
+//
+//   mcre_app                   shows the built-in prototype data (4 properties, Fire and Water)
+//   mcre_app components.json   loads your file against the prototype properties and shows the result
+//   mcre_app --help            shows this text
+//
+// Exit code: 0 = success, 1 = the file had problems or something went wrong, 2 = wrong usage.
 
 #include <cstdlib>
-#include <filesystem>
-#include <fstream>
+#include <exception>
 #include <iostream>
-#include <string>
 #include <string_view>
-#include <stdexcept>
 #include <utility>
 
+#include "mcre/model/builtin.hpp"
+#include "mcre/model/componentRegistry.hpp"
 #include "mcre/model/loader.hpp"
 #include "mcre/model/propertyRegistry.hpp"
-#include "mcre/model/componentRegistry.hpp"
-#include "mcre/model/builtin.hpp"
 
 namespace {
-	// Prints what a load produced: every component, or every problem.
-	void show(std::string_view title, const mcre::LoadResult& result, const mcre::PropertyRegistry& registry) {
-		std::cout << "\n=== " << title << " ===\n";
-		std::cout << "ok? " << (result.ok() ? "yes" : "no")
-			<< ", components: " << result.components.size()
-			<< ", problems: " << result.problems.size() << "\n";
+	constexpr int kExitOk = 0;
+	constexpr int kExitFailed = 1;
+	constexpr int kExitBadUsage = 2;
 
-		for (const mcre::component& c : result.components) {
-			std::cout << "  " << c.componentName << " (version '" << c.version << "')\n";
-			for (const auto& [id, value] : c.properties) {
-				const mcre::property* p = registry.byId(id);   // id -> property, to print its name
-				std::cout << "      " << (p ? p->propertyName : "?") << " = " << value << "\n";
+	void printUsage(std::ostream& out) {
+		out << "Usage:\n"
+			<< "  mcre_app                   show the built-in prototype data\n"
+			<< "  mcre_app <components.json> load a components file and show it\n"
+			<< "  mcre_app --help            show this text\n";
+	}
+
+	// Loads the file and adds its components to 'components'.
+	// Returns false, after printing every problem, when the file is not valid.
+	bool loadFile(const char* path, const mcre::PropertyRegistry& properties, mcre::ComponentRegistry& components) {
+		mcre::LoadResult loaded = mcre::loadComponentsFromFile(path, properties);
+
+		if (!loaded.ok()) {
+			std::cerr << path << " has " << loaded.problems.size() << " problem(s):\n";
+			for (const mcre::Diagnostic& d : loaded.problems) {
+				std::cerr << "  " << d.where << "  ->  " << d.message << "\n";
 			}
+			return false;
 		}
-		for (const mcre::Diagnostic& d : result.problems) {
-			std::cout << "  PROBLEM  " << d.where << "  ->  " << d.message << "\n";
+
+		for (mcre::component& c : loaded.components) {
+			components.add(std::move(c), properties);
 		}
+		return true;
 	}
 }
 
-int main() {
-	// The properties that exist. The loader checks the file against these.
-	mcre::PropertyRegistry registry;
-	mcre::builtin::addPrototypeProperties(registry);
-
-	// ---- Test 1: good text. Expect: ok, 2 components, 0 problems.
-	const std::string goodText = R"json({
-		"schemaVersion": 1,
-		"components": [
-			{ "name": "Fire",  "version": "1", "properties": { "Temperature": 0.95, "Viscosity": 0.1, "Pressure": 0.4, "Expansion": 0.7 } },
-			{ "name": "Water", "properties": { "Temperature": 0.2, "Viscosity": 0.6 } }
-		]
-	})json";
-	show("Test 1: good text", mcre::loadComponentsFromText(goodText, "good-inline", registry), registry);
-
-	// ---- Test 2: bad text. Expect: not ok, 0 components, 6 problems.
-	const std::string badText = R"json({
-		"schemaVersion": 1,
-		"components": [
-			{ "name": "Fire", "colour": "red",
-			  "properties": { "Temperature": 1.7, "Mana": 0.5, "Viscosity": "hot" } },
-			{ "name": "Fire", "properties": {} },
-			{ "properties": {} }
-		]
-	})json";
-	show("Test 2: bad text", mcre::loadComponentsFromText(badText, "bad-inline", registry), registry);
-
-	// ---- Test 3: text that is not JSON at all. Expect: one 'not valid JSON' problem.
-	show("Test 3: broken JSON", mcre::loadComponentsFromText("{ \"components\": [ ", "broken-inline", registry), registry);
-
-	// ---- Test 4: a file that does not exist. Expect: 'cannot open the file'.
-	show("Test 4: missing file", mcre::loadComponentsFromFile("this_file_does_not_exist.json", registry), registry);
-
-	// ---- Test 5: a real file. We write one into the temp folder, load it, delete it.
-	const std::filesystem::path file = std::filesystem::temp_directory_path() / "mcre_fire_test.json";
-	{
-		std::ofstream out(file);
-		out << goodText;
+int main(int argc, char* argv[]) {
+	if (argc > 2) {
+		printUsage(std::cerr);
+		return kExitBadUsage;
 	}
-	show("Test 5: file on disk", mcre::loadComponentsFromFile(file, registry), registry);
-	std::filesystem::remove(file);
+	if (argc == 2 && (std::string_view(argv[1]) == "--help" || std::string_view(argv[1]) == "-h")) {
+		printUsage(std::cout);
+		return kExitOk;
+	}
 
-	// ---- Test 6: loaded components go into the ComponentRegistry and get ids.
-	{
-		mcre::LoadResult loaded = mcre::loadComponentsFromText(goodText, "good-inline", registry);
+	try {
+		mcre::PropertyRegistry properties;
+		mcre::builtin::addPrototypeProperties(properties);
+
 		mcre::ComponentRegistry components;
-		for (mcre::component& c : loaded.components) {
-			const mcre::ComponentId id = components.add(std::move(c), registry);
-			std::cout << "\nregistered '" << components.byId(id)->componentName << "' with id " << id;
+		if (argc == 2) {
+			if (!loadFile(argv[1], properties, components)) return kExitFailed;
 		}
-		std::cout << "\n";
-		components.dump(std::cout, registry);
-		std::cout << "idOf(Water) = " << components.idOf("Water") << ", idOf(Ice) = " << components.idOf("Ice") << "\n";
+		else {
+			mcre::builtin::addPrototypeComponents(components, properties);
+		}
 
-		// A duplicate name is refused: add() throws.
-		try {
-			mcre::component again;
-			again.componentName = "Fire";
-			components.add(again, registry);
-		}
-		catch (const std::invalid_argument& e) {
-			std::cout << "rejected as expected: " << e.what() << "\n";
-		}
+		properties.dump(std::cout);
+		components.dump(std::cout, properties);
+		return kExitOk;
 	}
-
-	// ---- Test 7: the built-in prototype data (4 properties, Fire, Water) from builtin.cpp.
-	{
-		mcre::PropertyRegistry prototypeProperties;
-		mcre::ComponentRegistry prototypeComponents;
-		mcre::builtin::addPrototypeProperties(prototypeProperties);
-		mcre::builtin::addPrototypeComponents(prototypeComponents, prototypeProperties);
-		std::cout << "\n=== Test 7: built-in prototype data ===\n";
-		prototypeProperties.dump(std::cout);
-		prototypeComponents.dump(std::cout, prototypeProperties);
+	catch (const std::exception& e) {
+		std::cerr << "error: " << e.what() << "\n";
+		return kExitFailed;
 	}
-
-	std::cout << "\nPress Enter to exit...";
-	std::cin.get();
-	return EXIT_SUCCESS;
+	catch (...) {
+		std::cerr << "error: unknown failure\n";
+		return kExitFailed;
+	}
 }

@@ -46,3 +46,12 @@ add_subdirectory(src)
 
 # Run app/CMakeLists.txt, which defines the executable "mcre_app".
 add_subdirectory(app)
+
+# ---- Unit tests ----
+# Turn this OFF to skip downloading GoogleTest
+option(MCRE_BUILD_TESTS "Build the unit tests" ON)
+
+if (MCRE_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
