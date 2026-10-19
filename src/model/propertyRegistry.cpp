@@ -1,4 +1,4 @@
-#include "mcre/model/registry.hpp"
+#include "mcre/model/propertyRegistry.hpp"
 
 #include <cmath>
 #include <iomanip>

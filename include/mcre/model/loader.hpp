@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include "mcre/model/registry.hpp"
+#include "mcre/model/propertyRegistry.hpp"
 #include "mcre/model/model.hpp"
 
 // Loads components from JSON, for example:

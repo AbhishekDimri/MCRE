@@ -6,9 +6,12 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <stdexcept>
+#include <utility>
 
 #include "mcre/model/loader.hpp"
-#include "mcre/model/registry.hpp"
+#include "mcre/model/propertyRegistry.hpp"
+#include "mcre/model/componentRegistry.hpp"
 
 namespace {
 	// Prints what a load produced: every component, or every problem.
@@ -75,6 +78,29 @@ int main() {
 	}
 	show("Test 5: file on disk", mcre::loadComponentsFromFile(file, registry), registry);
 	std::filesystem::remove(file);
+
+	// ---- Test 6: loaded components go into the ComponentRegistry and get ids.
+	{
+		mcre::LoadResult loaded = mcre::loadComponentsFromText(goodText, "good-inline", registry);
+		mcre::ComponentRegistry components;
+		for (mcre::component& c : loaded.components) {
+			const mcre::ComponentId id = components.add(std::move(c), registry);
+			std::cout << "\nregistered '" << components.byId(id)->componentName << "' with id " << id;
+		}
+		std::cout << "\n";
+		components.dump(std::cout, registry);
+		std::cout << "idOf(Water) = " << components.idOf("Water") << ", idOf(Ice) = " << components.idOf("Ice") << "\n";
+
+		// A duplicate name is refused: add() throws.
+		try {
+			mcre::component again;
+			again.componentName = "Fire";
+			components.add(again, registry);
+		}
+		catch (const std::invalid_argument& e) {
+			std::cout << "rejected as expected: " << e.what() << "\n";
+		}
+	}
 
 	std::cout << "\nPress Enter to exit...";
 	std::cin.get();

@@ -7,7 +7,8 @@ add_library(mcre STATIC
     # Every new .cpp you write must be added to this list, otherwise it is
     # never compiled and you get "unresolved external symbol" at link time.
     core/errors.cpp
-    model/registry.cpp
+    model/propertyRegistry.cpp
+    model/componentRegistry.cpp
     model/loader.cpp
 
     # Headers are listed only so Visual Studio associates them with this
@@ -18,7 +19,8 @@ add_library(mcre STATIC
     ${PROJECT_SOURCE_DIR}/include/mcre/model/response.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/aggregation.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/core/logger.hpp
-    ${PROJECT_SOURCE_DIR}/include/mcre/model/registry.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/propertyRegistry.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/componentRegistry.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/loader.hpp
 )
 
