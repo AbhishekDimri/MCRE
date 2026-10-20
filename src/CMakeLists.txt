@@ -12,6 +12,10 @@ add_library(mcre STATIC
     model/loader.cpp
     model/builtin.cpp 
     model/propertyState.cpp
+    model/engine.cpp
+    model/spell.cpp
+    model/stateNames.cpp
+    model/spellBuilder.cpp
 
     # Headers are listed only so Visual Studio associates them with this
     # target (gives IntelliSense and the project dropdown). The compiler does
@@ -26,6 +30,11 @@ add_library(mcre STATIC
     ${PROJECT_SOURCE_DIR}/include/mcre/model/loader.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/builtin.hpp
     ${PROJECT_SOURCE_DIR}/include/mcre/model/propertyState.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/engine.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/result.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/spell.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/stateNames.hpp
+    ${PROJECT_SOURCE_DIR}/include/mcre/model/spellBuilder.hpp
 )
 
 # Tells the compiler where to search for headers. PROJECT_SOURCE_DIR is the

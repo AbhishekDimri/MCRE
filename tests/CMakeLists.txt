@@ -20,6 +20,14 @@ add_executable(mcre_tests
   loaderTests.cpp
   builtinTests.cpp
   propertyStateTests.cpp
+  responseTests.cpp
+  aggregationTests.cpp
+  spellTests.cpp
+  engineTests.cpp
+  evaluateTests.cpp
+  loopTests.cpp
+  spellBuilderTests.cpp
+  stateNamesTests.cpp
 )
 
 # mcre = our engine. gtest_main supplies main() for us, so the test files have none.

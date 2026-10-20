@@ -1,0 +1,7 @@
+# Let Git handle line endings: text files are stored with LF in the repository and
+# come out with the line endings of the system they are checked out on (CRLF on Windows).
+* text=auto
+
+# Never change these.
+*.pdf binary
+*.png binary

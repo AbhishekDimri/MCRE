@@ -83,4 +83,6 @@ int main(int argc, char* argv[]) {
 		std::cerr << "error: unknown failure\n";
 		return kExitFailed;
 	}
+
+	std::cin.get();
 }

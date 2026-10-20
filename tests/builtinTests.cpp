@@ -19,15 +19,36 @@ TEST(Builtin, PrototypePropertiesGetTheExpectedIds) {
 	EXPECT_EQ(properties.idOf("Expansion"), 4u);
 }
 
-TEST(Builtin, PrototypePropertiesAreNormalizedAndWeightedMean) {
+TEST(Builtin, PrototypePropertiesHaveTheRangesAndMixingRulesFromTheDesignDocument) {
 	PropertyRegistry properties;
 	builtin::addPrototypeProperties(properties);
 
-	for (const property& p : properties.all()) {
-		EXPECT_DOUBLE_EQ(p.bounds.lower, 0.0) << p.propertyName;
-		EXPECT_DOUBLE_EQ(p.bounds.upper, 1.0) << p.propertyName;
-		EXPECT_EQ(p.aggregationKind, AggregationKind::WeightedMean) << p.propertyName;
-	}
+	const property* temperature = properties.byName("Temperature");
+	const property* viscosity = properties.byName("Viscosity");
+	const property* pressure = properties.byName("Pressure");
+	const property* expansion = properties.byName("Expansion");
+	ASSERT_NE(temperature, nullptr);
+	ASSERT_NE(viscosity, nullptr);
+	ASSERT_NE(pressure, nullptr);
+	ASSERT_NE(expansion, nullptr);
+
+	// Temperature and Expansion are signed, because a thing can be cold or shrink.
+	EXPECT_DOUBLE_EQ(temperature->bounds.lower, -1.0);
+	EXPECT_DOUBLE_EQ(temperature->bounds.upper, 1.0);
+	EXPECT_DOUBLE_EQ(expansion->bounds.lower, -1.0);
+	EXPECT_DOUBLE_EQ(expansion->bounds.upper, 1.0);
+
+	// Viscosity and Pressure run from 0 to 1.
+	EXPECT_DOUBLE_EQ(viscosity->bounds.lower, 0.0);
+	EXPECT_DOUBLE_EQ(viscosity->bounds.upper, 1.0);
+	EXPECT_DOUBLE_EQ(pressure->bounds.lower, 0.0);
+	EXPECT_DOUBLE_EQ(pressure->bounds.upper, 1.0);
+
+	// Pressure adds up with the amounts; the others are blended.
+	EXPECT_EQ(pressure->aggregationKind, AggregationKind::Sum);
+	EXPECT_EQ(temperature->aggregationKind, AggregationKind::WeightedMean);
+	EXPECT_EQ(viscosity->aggregationKind, AggregationKind::WeightedMean);
+	EXPECT_EQ(expansion->aggregationKind, AggregationKind::WeightedMean);
 }
 
 TEST(Builtin, PrototypeComponentsAreFireAndWater) {
@@ -50,6 +71,7 @@ TEST(Builtin, FireAndWaterHaveTheValuesFromTheDesignDocument) {
 
 	const PropertyId temperature = properties.idOf("Temperature");
 	const PropertyId viscosity = properties.idOf("Viscosity");
+	const PropertyId pressure = properties.idOf("Pressure");
 	const PropertyId expansion = properties.idOf("Expansion");
 
 	const component* fire = components.byName("Fire");
@@ -59,21 +81,24 @@ TEST(Builtin, FireAndWaterHaveTheValuesFromTheDesignDocument) {
 
 	EXPECT_DOUBLE_EQ(fire->properties.at(temperature), 0.95);
 	EXPECT_DOUBLE_EQ(fire->properties.at(viscosity), 0.05);
+	EXPECT_DOUBLE_EQ(fire->properties.at(pressure), 0.04);
 	EXPECT_DOUBLE_EQ(fire->properties.at(expansion), 0.72);
-	EXPECT_DOUBLE_EQ(water->properties.at(temperature), 0.20);
+	EXPECT_DOUBLE_EQ(water->properties.at(temperature), -0.30);   // Water is cold
 	EXPECT_DOUBLE_EQ(water->properties.at(viscosity), 0.78);
+	EXPECT_DOUBLE_EQ(water->properties.at(pressure), 0.03);
 	EXPECT_DOUBLE_EQ(water->properties.at(expansion), 0.12);
 }
 
-TEST(Builtin, FireAndWaterDoNotStorePressure) {
+TEST(Builtin, EveryPrototypePropertyHasAValueOnBothCards) {
 	PropertyRegistry properties;
 	ComponentRegistry components;
 	builtin::addPrototypeProperties(properties);
 	builtin::addPrototypeComponents(components, properties);
 
-	const PropertyId pressure = properties.idOf("Pressure");
-	EXPECT_EQ(components.byName("Fire")->properties.count(pressure), 0u);   // absent, not 0
-	EXPECT_EQ(components.byName("Water")->properties.count(pressure), 0u);
+	for (const property& p : properties.all()) {
+		EXPECT_EQ(components.byName("Fire")->properties.count(p.propertyId), 1u) << p.propertyName;
+		EXPECT_EQ(components.byName("Water")->properties.count(p.propertyId), 1u) << p.propertyName;
+	}
 }
 
 TEST(Builtin, CallingTheSameFunctionTwiceThrows) {
