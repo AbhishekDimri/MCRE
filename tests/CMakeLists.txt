@@ -19,6 +19,7 @@ add_executable(mcre_tests
   componentRegistryTests.cpp
   loaderTests.cpp
   builtinTests.cpp
+  propertyStateTests.cpp
 )
 
 # mcre = our engine. gtest_main supplies main() for us, so the test files have none.
